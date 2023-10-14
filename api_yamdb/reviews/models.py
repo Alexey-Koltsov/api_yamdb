@@ -1,15 +1,21 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
+
+from api.constants import (SYMBOLS_QUANTITY,
+                           MAX_NAME_LENGHT,
+                           MAX_SLUG_LENGHT)
 
 
 class Genre(models.Model):
     """Модель жанра."""
-    
+
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_NAME_LENGHT,
         verbose_name='Название'
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_SLUG_LENGHT,
         unique=True,
         verbose_name='Slug'
     )
@@ -19,19 +25,19 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
-        return self.name[:20]
+        return f'Жанр: {self.name[:SYMBOLS_QUANTITY]}'
 
 
 class Category(models.Model):
     """Модель категорий."""
 
     name = models.CharField(
-        max_length=256, 
-        unique=True, 
+        max_length=MAX_NAME_LENGHT,
+        unique=True,
         verbose_name='Название'
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=MAX_SLUG_LENGHT,
         unique=True,
         verbose_name='Slug'
     )
@@ -41,14 +47,14 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.name[:20]
+        return f'Категория: {self.name[:SYMBOLS_QUANTITY]}'
 
 
 class Title(models.Model):
     """Модель произведений."""
-    
+
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_NAME_LENGHT,
         verbose_name='Название'
     )
     year = models.PositiveIntegerField(
@@ -61,26 +67,34 @@ class Title(models.Model):
         verbose_name='Рейтинг на основе отзывов'
     )
     description = models.TextField(
-        blank=True, 
-        null=True, 
+        blank=True,
+        null=True,
         verbose_name='Описание'
     )
     genre = models.ManyToManyField(
         Genre,
-        related_name='titles', 
+        blank=True,
+        related_name='titles',
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
-        Category, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name='titles',
         verbose_name='Категория'
     )
+
+    def check_year_value(self):
+        year = self.year
+        if year is not None and year > timezone.now().year:
+            raise ValidationError(
+                {'year': 'Год не может быть больше текущего.'}
+            )
 
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
     def __str__(self):
-        return self.name[:20]
+        return self.name[:SYMBOLS_QUANTITY]
