@@ -2,20 +2,18 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from api.constants import (SYMBOLS_QUANTITY,
-                           MAX_NAME_LENGHT,
-                           MAX_SLUG_LENGHT)
+from api.constants import SYMBOLS_QUANTITY
 
 
 class Genre(models.Model):
     """Модель жанра."""
 
     name = models.CharField(
-        max_length=MAX_NAME_LENGHT,
+        max_length=256,
         verbose_name='Название'
     )
     slug = models.SlugField(
-        max_length=MAX_SLUG_LENGHT,
+        max_length=50,
         unique=True,
         verbose_name='Slug'
     )
@@ -32,12 +30,12 @@ class Category(models.Model):
     """Модель категорий."""
 
     name = models.CharField(
-        max_length=MAX_NAME_LENGHT,
+        max_length=256,
         unique=True,
         verbose_name='Название'
     )
     slug = models.SlugField(
-        max_length=MAX_SLUG_LENGHT,
+        max_length=50,
         unique=True,
         verbose_name='Slug'
     )
@@ -54,7 +52,7 @@ class Title(models.Model):
     """Модель произведений."""
 
     name = models.CharField(
-        max_length=MAX_NAME_LENGHT,
+        max_length=256,
         verbose_name='Название'
     )
     year = models.PositiveIntegerField(
