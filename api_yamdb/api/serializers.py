@@ -6,7 +6,8 @@ from review.models import Comment, Review, User
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
-        read_only=True)
+        read_only=True
+        )
 
     class Meta:
         fields = ('id', 'author', 'post', 'text', 'created')
