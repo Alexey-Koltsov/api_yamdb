@@ -4,7 +4,7 @@ from rest_framework import filters
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 
-from reviews.models import Review, Comment
+from api_yamdb.models import Review, Comment
 from api.serializers import (ReviewSerializer,
                           CommentSerializer)
 
