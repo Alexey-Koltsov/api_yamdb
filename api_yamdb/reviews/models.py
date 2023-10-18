@@ -22,6 +22,10 @@ class CustomUser(AbstractUser):
         default=RoleEnum.user.value,
         max_length=9,
     )
+    confirmation_code = models.CharField(
+        max_length=16,
+        unique=True,
+    )
 
     class Meta:
         constraints = [
