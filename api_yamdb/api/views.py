@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
-from rest_framework import permissions, mixins, viewsets
-from api.serializers import UserSerializer
+from rest_framework import filters, permissions, mixins, viewsets
+
+from api.permissions import IsAdmin
+from api.serializers import UserSerializer, UserCreateListByAdminSerializer
 
 
 User = get_user_model()
@@ -28,3 +30,14 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
             from_email='yamdb@yandex.ru',
             recipient_list=[serializer.data['email']],
         )
+
+
+class UserCreateList(mixins.CreateModelMixin,
+                     mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Cоздание пользователя и получение списка пользователей Админом."""
+
+    queryset = User.objects.all()
+    serializer_class = UserCreateListByAdminSerializer
+    permission_classes = [IsAdmin,]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)

@@ -24,7 +24,6 @@ class CustomUser(AbstractUser):
     )
     confirmation_code = models.CharField(
         max_length=16,
-        unique=True,
     )
 
     class Meta:
