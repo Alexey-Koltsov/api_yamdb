@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from review.models import Comment, Review, User
+from reviews.models import Comment, Review, User
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -21,3 +21,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                             slug_field='username')
     review = SlugRelatedField(slug_field='username',
                                  queryset=User.objects.all())
+    
+    class Meta:
+        fields = ('id', 'author', 'post', 'text', 'created')
+        model = Review
