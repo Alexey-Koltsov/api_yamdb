@@ -8,7 +8,8 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
-from reviews.models import Genre, Category, Title
+from rest_framework.relations import SlugRelatedField
+from reviews.models import Genre, Category, Title, Comment, Review
 
 User = get_user_model()
 
@@ -156,3 +157,26 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+        
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+        ) 
+
+    class Meta:
+        fields = ('id', 'author', 'post', 'text', 'created')
+        model = Comment
+        read_only_fields = ('post', 'author')
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user = SlugRelatedField(read_only=True,
+                            default=serializers.CurrentUserDefault(),
+                            slug_field='username')
+    review = SlugRelatedField(slug_field='username',
+                                 queryset=User.objects.all())
+    
+    class Meta:
+        fields = ('id', 'author', 'post', 'text', 'created')
+        model = Review

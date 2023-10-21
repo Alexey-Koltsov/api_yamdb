@@ -1,17 +1,42 @@
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    pagination_class = LimitOffsetPagination
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        review_id = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        new_queryset = Comment.objects.filter(review=review_id)
+        return new_queryset
+
+    def perform_create(self, serializer):
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
+=======
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from rest_framework import filters, permissions, mixins, viewsets
-from reviews.models import Genre, Category, Title
+from reviews.models import Genre, Category, Title, Review, Comment
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from rest_framework.pagination import LimitOffsetPagination
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAdminUser
 from api.permissions import IsAdmin
 from api.serializers import (GenreSerializer,
                              CategorySerializer,
                              TitleSerializer,
                              UserSerializer,
-                             UserCreateListByAdminSerializer)
+                             UserCreateListByAdminSerializer,
+                             ReviewSerializer,
+                             CommentSerializer)
 
 
 User = get_user_model()
@@ -86,3 +111,24 @@ class TitleViewSet(viewsets.ModelViewSet):
         'name': ['icontains'],
         'year': ['exact']
     }
+    
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    pagination_class = LimitOffsetPagination
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        review_id = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        new_queryset = Comment.objects.filter(review=review_id)
+        return new_queryset
+
+    def perform_create(self, serializer):
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
