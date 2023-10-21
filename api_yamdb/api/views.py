@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
-from rest_framework import filters, permissions, mixins, viewsets
+from rest_framework import filters, permissions, mixins, viewsets, status
 from reviews.models import Genre, Category, Title, Review, Comment
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
@@ -41,6 +42,16 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
             from_email='yamdb@yandex.ru',
             recipient_list=[serializer.data['email']],
         )
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK,
+                        headers=headers
+                        )
 
 
 class UserCreateList(mixins.CreateModelMixin,
@@ -57,7 +68,7 @@ class UserCreateList(mixins.CreateModelMixin,
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter
@@ -68,7 +79,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter
@@ -79,7 +90,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter

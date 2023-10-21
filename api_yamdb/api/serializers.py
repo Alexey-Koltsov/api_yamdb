@@ -50,24 +50,21 @@ class UserCreateListByAdminSerializer(serializers.ModelSerializer):
     Сериализатор для создание пользователя и
     получение списка пользователей Админом.
     """
+    confirmation_code = serializers.HiddenField(
+        default='',
+        write_only=True,
+    )
 
     class Meta:
         model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
+        fields = ('username', 'email', 'confirmation_code')
 
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(
                 'Имя пользователя "me" запрещено!'
             )
-        if re.match(r'^[\w.@+-]+\Z', value):
+        if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
                 'Имя пользователя должно соотвестсвовать паттерну!'
             )
