@@ -7,6 +7,8 @@ from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import serializers
+from reviews.models import Genre, Category, Title
 
 User = get_user_model()
 
@@ -136,3 +138,21 @@ class CustomTokenObtainPairSerializer(CustomTokenObtainSerializer):
             models.update_last_login(None, self.user)
 
         return data
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = '__all__'
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Title
+        fields = '__all__'
