@@ -36,19 +36,40 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
     ]
 
     def perform_create(self, serializer):
+        username = serializer.validated_data['username']
         confirmation_code = get_random_string(length=16)
         serializer.save(
             confirmation_code=confirmation_code,
         )
         send_mail(
             subject='Код подтверждения для Yamdb',
-            message=f'"confirmation_code": "{confirmation_code}"',
+            message=(f'"username": "{username}",'
+                     f'"confirmation_code": "{confirmation_code}"'),
             from_email='yamdb@yandex.ru',
             recipient_list=[serializer.data['email']],
         )
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        """if 'username' not in request.data.keys() or 'email' not in request.data.keys():
+            return Response({"email": "email обязательно к заполнению."},
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
+        if '' in request.data.values():
+            return Response({'detail': 'Отсутствуют данные в запросе.'},
+                            status=status.HTTP_400_BAD_REQUEST
+                            )"""
+        username = request.data['username']
+        email = request.data['email']
+        username_list = list(User.objects.all().values_list('username', flat=True))
+        if username in username_list:
+            user = get_object_or_404(User, username=username)
+            if email != user.email:
+                return Response({'detail': 'Некорректный email.'},
+                                status=status.HTTP_400_BAD_REQUEST
+                                )
+            serializer = self.get_serializer(user, data=request.data)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -73,10 +94,11 @@ class TokenCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(User, username=request.data['username'])
         if user['confirmation_code'] != request.data['confirmation_code']:
-            return Response('Некорректный confirmation_code.', status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Некорректный confirmation_code.'},
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
         refresh = RefreshToken.for_user(user)
         data = {'token': str(refresh.access_token)}
-        # self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(data,
                         status=status.HTTP_200_OK,
