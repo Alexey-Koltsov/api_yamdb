@@ -2,15 +2,18 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, mixins, status, viewsets
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from api.permissions import IsAdmin
 from api.serializers import (GenreSerializer,
                              CategorySerializer,
                              TitleSerializer,
+                             TokenSerializer,
                              UserSerializer,
                              UserCreateListByAdminSerializer,
                              ReviewSerializer,
@@ -49,7 +52,33 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data,
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers
+        )
+
+
+class TokenCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Регистрация нового пользователя."""
+
+    serializer_class = TokenSerializer
+    queryset = User.objects.all()
+    permission_classes = [
+        permissions.AllowAny,
+    ]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(User, username=request.data['username'])
+        if user['confirmation_code'] != request.data['confirmation_code']:
+            return Response('Некорректный confirmation_code.', status=status.HTTP_400_BAD_REQUEST)
+        refresh = RefreshToken.for_user(user)
+        data = {'token': str(refresh.access_token)}
+        # self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(data,
                         status=status.HTTP_200_OK,
                         headers=headers
                         )

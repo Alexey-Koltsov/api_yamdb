@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Genre, Category, Title, Comment, Review
 
@@ -127,61 +126,12 @@ class UserCreateListByAdminSerializer(serializers.ModelSerializer):
         return value"""
 
 
-class ConfirmationCodeField(serializers.CharField):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('style', {})
+class TokenSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания токенов."""
 
-        kwargs['style']['input_type'] = 'confirmation_code'
-        kwargs['write_only'] = True
-
-        super().__init__(*args, **kwargs)
-
-
-class CustomTokenObtainSerializer(TokenObtainSerializer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields[self.username_field] = serializers.CharField(write_only=True)
-        self.fields['confirmation_code'] = ConfirmationCodeField()
-
-    def validate(self, attrs):
-
-        code_list = list(User.objects.all().values_list('confirmation_code', flat=True))
-
-        self.user = get_object_or_404(
-            User,
-            username=attrs[self.username_field],
-            confirmation_code=attrs['confirmation_code'],
-        )
-
-        if not attrs['confirmation_code'] in code_list:
-            raise serializers.ValidationError(
-                'Код подтверждения необходим!'
-            )
-
-        return {}
-
-
-class CustomTokenObtainPairSerializer(CustomTokenObtainSerializer):
-    token_class = RefreshToken
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields[self.username_field] = serializers.CharField()
-        del self.fields['password']
-        self.fields['confirmation_code'] = serializers.CharField()
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-
-        refresh = self.get_token(self.user)
-
-        data['token'] = str(refresh.access_token)
-
-        if api_settings.UPDATE_LAST_LOGIN:
-            models.update_last_login(None, self.user)
-
-        return data
+    class Meta:
+        model = User
+        fields = ('username',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
