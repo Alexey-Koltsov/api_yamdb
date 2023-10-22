@@ -2,12 +2,12 @@ import re
 
 from django.contrib.auth import get_user_model, models
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers, validators
+from rest_framework import serializers, validators, status
+from rest_framework.response import Response
 from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Genre, Category, Title, Comment, Review
 
@@ -25,7 +25,8 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=254,
         validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
-    confirmation_code = serializers.CharField(
+    confirmation_code = serializers.HiddenField(
+        default='',
         write_only=True,
     )
 
@@ -38,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Имя пользователя "me" запрещено!'
             )
-        if re.match(r'^[\w.@+-]+\Z', value):
+        if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
                 'Имя пользователя должно соотвестсвовать паттерну!'
             )
@@ -67,11 +68,63 @@ class UserCreateListByAdminSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Имя пользователя "me" запрещено!'
             )
-        if re.match(r'^[\w.@+-]+\Z', value):
+        if not re.match(r'^[\w.@+-]+\Z', value):
             raise serializers.ValidationError(
-                'Имя пользователя должно соотвестсвовать паттерну!'
+                'Имя пользователя должно соответствовать паттерну!'
             )
         return value
+
+
+"""class ProfileGetUpdateDeleteByAdmin(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" запрещено!'
+            )
+        if not re.match(r'^[\w.@+-]+\Z', value):
+            raise serializers.ValidationError(
+                'Имя пользователя должно соответствовать паттерну!'
+            )
+        return value"""
+
+
+"""class UserMeGetUpdate(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" запрещено!'
+            )
+        if not re.match(r'^[\w.@+-]+\Z', value):
+            raise serializers.ValidationError(
+                'Имя пользователя должно соответствовать паттерну!'
+            )
+        return value"""
 
 
 class ConfirmationCodeField(serializers.CharField):
@@ -92,14 +145,8 @@ class CustomTokenObtainSerializer(TokenObtainSerializer):
         self.fields['confirmation_code'] = ConfirmationCodeField()
 
     def validate(self, attrs):
-        authenticate_kwargs = {
-            self.username_field: attrs[self.username_field],
-            'confirmation_code': attrs['confirmation_code'],
-        }
-        try:
-            authenticate_kwargs['request'] = self.context['request']
-        except KeyError:
-            pass
+
+        code_list = list(User.objects.all().values_list('confirmation_code', flat=True))
 
         self.user = get_object_or_404(
             User,
@@ -107,13 +154,9 @@ class CustomTokenObtainSerializer(TokenObtainSerializer):
             confirmation_code=attrs['confirmation_code'],
         )
 
-        print(f'self.user: {self.user}')
-        print(f'authenticate_kwargs: {authenticate_kwargs}')
-
-        if not api_settings.USER_AUTHENTICATION_RULE(self.user):
-            raise exceptions.AuthenticationFailed(
-                self.error_messages["no_active_account"],
-                "no_active_account",
+        if not attrs['confirmation_code'] in code_list:
+            raise serializers.ValidationError(
+                'Код подтверждения необходим!'
             )
 
         return {}
@@ -157,12 +200,13 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-        
+
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
-        ) 
+    )
 
     class Meta:
         fields = ('id', 'author', 'post', 'text', 'created')
@@ -176,7 +220,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                             slug_field='username')
     review = SlugRelatedField(slug_field='username',
                                  queryset=User.objects.all())
-    
+
     class Meta:
         fields = ('id', 'author', 'post', 'text', 'created')
         model = Review
