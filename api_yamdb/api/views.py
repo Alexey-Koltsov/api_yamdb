@@ -50,26 +50,30 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        """if 'username' not in request.data.keys() or 'email' not in request.data.keys():
-            return Response({"email": "email обязательно к заполнению."},
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-        if '' in request.data.values():
+        if 'username' in request.data.keys() and 'email' in request.data.keys():
+            username = request.data['username']
+            email = request.data['email']
+            username_list = list(User.objects.all().values_list('username', flat=True))
+            if username in username_list:
+                user = get_object_or_404(User, username=username)
+                if email != user.email:
+                    return Response({'detail': 'Некорректный email.'},
+                                    status=status.HTTP_400_BAD_REQUEST
+                                    )
+                serializer = self.get_serializer(user, data=request.data)
+                serializer.is_valid(raise_exception=True)
+                self.perform_create(serializer)
+                headers = self.get_success_headers(serializer.data)
+                return Response(
+                           serializer.data,
+                           status=status.HTTP_200_OK,
+                           headers=headers
+                           )
+        serializer = self.get_serializer(data=request.data)
+        """if '' in request.data.values():
             return Response({'detail': 'Отсутствуют данные в запросе.'},
                             status=status.HTTP_400_BAD_REQUEST
                             )"""
-        username = request.data['username']
-        email = request.data['email']
-        username_list = list(User.objects.all().values_list('username', flat=True))
-        if username in username_list:
-            user = get_object_or_404(User, username=username)
-            if email != user.email:
-                return Response({'detail': 'Некорректный email.'},
-                                status=status.HTTP_400_BAD_REQUEST
-                                )
-            serializer = self.get_serializer(user, data=request.data)
-        else:
-            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
