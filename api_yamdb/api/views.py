@@ -19,7 +19,6 @@ from api.serializers import (GenreSerializer,
                              ReviewSerializer,
                              CommentSerializer,)
 
-# ProfileGetUpdateDeleteByAdmin, UserMeGetUpdate,
 
 from reviews.models import Genre, Category, Title, Review, Comment
 
@@ -50,10 +49,12 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        if 'username' in request.data.keys() and 'email' in request.data.keys():
+        keys = request.data.keys()
+        if 'username' in keys and 'email' in keys:
             username = request.data['username']
             email = request.data['email']
-            username_list = list(User.objects.all().values_list('username', flat=True))
+            username_list = list(self.queryset.values_list('username',
+                                                           flat=True))
             if username in username_list:
                 user = get_object_or_404(User, username=username)
                 if email != user.email:
@@ -119,33 +120,6 @@ class UserCreateList(mixins.CreateModelMixin,
     permission_classes = [IsAdmin,]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-
-
-"""class ProfileRetrieveUpdateDestroy(viewsets.RetrieveUpdateDestroyAPIView):
-    
-
-    queryset = User.objects.all()
-    serializer_class = ProfileGetUpdateDeleteByAdmin
-    permission_classes = [IsAdmin,]
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object(username=self.kwargs['username'])
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.delete()"""
-
-
-"""class UserMeRetrieveUpdate(viewsets.RetrieveUpdateAPIView):
-    
-
-    queryset = User.objects.all()
-    serializer_class = ProfileGetUpdateDeleteByAdmin
-    permission_classes = [IsAdmin,]"""
 
 
 class GenreViewSet(viewsets.ModelViewSet):

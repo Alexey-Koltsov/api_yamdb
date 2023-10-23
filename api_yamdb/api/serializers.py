@@ -1,12 +1,7 @@
 import re
 
-from django.contrib.auth import get_user_model, models
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers, validators, status
-from rest_framework.response import Response
-from rest_framework_simplejwt import exceptions
-from rest_framework_simplejwt.serializers import TokenObtainSerializer
-from rest_framework_simplejwt.settings import api_settings
+from django.contrib.auth import get_user_model
+from rest_framework import serializers, validators
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Genre, Category, Title, Comment, Review
 
@@ -74,58 +69,6 @@ class UserCreateListByAdminSerializer(serializers.ModelSerializer):
         return value
 
 
-"""class ProfileGetUpdateDeleteByAdmin(serializers.ModelSerializer):
-    
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Имя пользователя "me" запрещено!'
-            )
-        if not re.match(r'^[\w.@+-]+\Z', value):
-            raise serializers.ValidationError(
-                'Имя пользователя должно соответствовать паттерну!'
-            )
-        return value"""
-
-
-"""class UserMeGetUpdate(serializers.ModelSerializer):
-    
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Имя пользователя "me" запрещено!'
-            )
-        if not re.match(r'^[\w.@+-]+\Z', value):
-            raise serializers.ValidationError(
-                'Имя пользователя должно соответствовать паттерну!'
-            )
-        return value"""
-
-
 class TokenSerializer(serializers.ModelSerializer):
     """Сериализатор для создания токенов."""
 
@@ -169,7 +112,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                             default=serializers.CurrentUserDefault(),
                             slug_field='username')
     review = SlugRelatedField(slug_field='username',
-                                 queryset=User.objects.all())
+                              queryset=User.objects.all())
 
     class Meta:
         fields = ('id', 'author', 'post', 'text', 'created')
