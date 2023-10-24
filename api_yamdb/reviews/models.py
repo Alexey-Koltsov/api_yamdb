@@ -92,7 +92,7 @@ class Title(models.Model):
 
     name = models.CharField(
         max_length=256,
-        verbose_name='Название'
+        verbose_name='Название',
     )
     year = models.PositiveIntegerField(
         blank=True,
@@ -136,6 +136,20 @@ class Title(models.Model):
     def __str__(self):
         return self.name[:SYMBOLS_QUANTITY]
       
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    def __str__(self):
+        return f'{self.title} {self.genre}' 
       
 class Review(models.Model):
     author = models.ForeignKey(

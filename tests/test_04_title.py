@@ -58,7 +58,7 @@ class Test04TitleAPI:
         }
         response = admin_client.post(self.TITLES_URL, data=post_data_1)
         assert response.status_code == HTTPStatus.CREATED, (
-            f'Если POST-запрос администратора к `{self.TITLES_URL}` '
+            f'Если POST-запрос {response.status_code} администратора к `{self.TITLES_URL}` '
             'содержит корректные данные - должен вернуться ответ со статусом '
             '201.'
         )
@@ -73,7 +73,7 @@ class Test04TitleAPI:
         }
         response = admin_client.post(self.TITLES_URL, data=post_data_2)
         assert response.status_code == HTTPStatus.CREATED, (
-            f'Если POST-запрос администратора к `{self.TITLES_URL}` '
+            f'Если POST-запрос администратораr {response.status_code} к `{self.TITLES_URL}` '
             'содержит корректные данные - должен вернуться ответ со статусом '
             '201.'
         )

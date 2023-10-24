@@ -6,17 +6,19 @@ from reviews.models import Genre, Category, Title, Review, Comment
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework import filters
-from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAdminUser
-from api.permissions import IsAdmin
+from api.permissions import IsAdmin, IsAuthorModeratorAdminOrReadOnly
 from api.serializers import (GenreSerializer,
                              CategorySerializer,
                              TitleSerializer,
                              UserSerializer,
                              UserCreateListByAdminSerializer,
+                             UserMeGetUpdateSerializer,
                              ReviewSerializer,
-                             CommentSerializer)
+                             CommentSerializer,
+                             TokenSerializer)
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 User = get_user_model()
@@ -53,6 +55,30 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
                         headers=headers
                         )
 
+class TokenCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Регистрация нового пользователя."""
+
+    serializer_class = TokenSerializer
+    queryset = User.objects.all()
+    permission_classes = [
+        permissions.AllowAny,
+    ]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(User, username=request.data['username'])
+        if user['confirmation_code'] != request.data['confirmation_code']:
+            return Response({'detail': 'Некорректный confirmation_code.'},
+                            status=status.HTTP_400_BAD_REQUEST
+                            )
+        refresh = RefreshToken.for_user(user)
+        data = {'token': str(refresh.access_token)}
+        headers = self.get_success_headers(serializer.data)
+        return Response(data,
+                        status=status.HTTP_200_OK,
+                        headers=headers
+                        )
 
 class UserCreateList(mixins.CreateModelMixin,
                      mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -64,6 +90,19 @@ class UserCreateList(mixins.CreateModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
+class UserMeRetrieveUpdate(mixins.RetrieveModelMixin,
+                           mixins.UpdateModelMixin,
+                           viewsets.GenericViewSet):
+    """Получение профайла и его изменение пользователем."""
+
+    queryset = User.objects.all()
+    serializer_class = UserMeGetUpdateSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        print(000000000000000000000000)
+        instance = get_object_or_404(User, username=request.user.username)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
@@ -105,14 +144,24 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAuthorModeratorAdminOrReadOnly]
+        
+    def get_queryset(self):
+        title = get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id'))
+        return title.reviews.all()
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        title = get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthorModeratorAdminOrReadOnly]
 
     def get_queryset(self):
         review_id = get_object_or_404(Review, id=self.kwargs.get('review_id'))
