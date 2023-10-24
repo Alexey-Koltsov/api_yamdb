@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, mixins, status, viewsets
+from rest_framework import filters, generics, pagination, permissions, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,6 +16,7 @@ from api.serializers import (GenreSerializer,
                              TokenSerializer,
                              UserSerializer,
                              UserCreateListByAdminSerializer,
+                             UserGetUpdateDeleteByAdminSerializer,
                              UserMeGetUpdateSerializer,
                              ReviewSerializer,
                              CommentSerializer,)
@@ -87,7 +88,7 @@ class UserCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class TokenCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    """Регистрация нового пользователя."""
+    """Получение и обновленине токена пользователем."""
 
     serializer_class = TokenSerializer
     queryset = User.objects.all()
@@ -104,35 +105,67 @@ class TokenCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
                             status=status.HTTP_400_BAD_REQUEST
                             )
         refresh = RefreshToken.for_user(user)
-        data = {'token': str(refresh.access_token)}
+        data = {'access': str(refresh.access_token)}
         return Response(data,
                         status=status.HTTP_200_OK,
                         )
 
 
-class UserCreateList(mixins.CreateModelMixin,
-                     mixins.ListModelMixin, viewsets.GenericViewSet):
+class UserCreateListViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """Cоздание пользователя и получение списка пользователей Админом."""
 
     queryset = User.objects.all()
     serializer_class = UserCreateListByAdminSerializer
     permission_classes = [IsAdmin,]
+    pagination_class = pagination.LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
 
-class UserMeRetrieveUpdate(mixins.RetrieveModelMixin,
-                           mixins.UpdateModelMixin,
-                           viewsets.GenericViewSet):
-    """Получение профайла и его изменение пользователем."""
+class UserRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    """Cоздание, изменение и удаление пользователя Админом."""
+
+    queryset = User.objects.all()
+    serializer_class = UserGetUpdateDeleteByAdminSerializer
+    permission_classes = [IsAdmin,]
+
+    def get_object(self, *args, **kwargs):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+
+class UserMeRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    """Получение учетной записи и ее изменение пользователем."""
 
     queryset = User.objects.all()
     serializer_class = UserMeGetUpdateSerializer
 
+    def get_object(self):
+        return get_object_or_404(User, username=self.request.user.username)
+
     def retrieve(self, request, *args, **kwargs):
-        print(000000000000000000000000)
-        instance = get_object_or_404(User, username=request.user.username)
+        instance = self.get_object()
         serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
 
 

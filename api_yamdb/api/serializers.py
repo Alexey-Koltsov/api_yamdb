@@ -89,6 +89,50 @@ class UserCreateListByAdminSerializer(serializers.ModelSerializer):
         return value
 
 
+class UserGetUpdateDeleteByAdminSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для получения, изменения и удаления
+    пользователей по имени пользователя Админом.
+    """
+
+    username = serializers.SlugField(
+        max_length=150,
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
+    )
+    email = serializers.EmailField(
+        max_length=254,
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
+    )
+    first_name = serializers.SlugField(
+        max_length=150,
+    )
+    last_name = serializers.SlugField(
+        max_length=150,
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" запрещено!'
+            )
+        if not re.match(r'^[\w.@+-]+\Z', value):
+            raise serializers.ValidationError(
+                'Имя пользователя должно соответствовать паттерну!'
+            )
+        return value
+
+
 class UserMeGetUpdateSerializer(serializers.ModelSerializer):
     """
     Сериализатор для получения, изменения
