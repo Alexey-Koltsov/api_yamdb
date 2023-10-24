@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from api.views import (CategoryViewSet, CommentViewSet, GenreViewSet,
                        ReviewViewSet, TitleViewSet, TokenCreate, UserCreate,
-                       UserCreateList,
+                       UserCreateList, UserMeRetrieveUpdate,
                        )
 
 # ProfileRetrieveUpdateDestroy, UserMeRetrieveUpdate,
@@ -15,6 +15,7 @@ router_api_01.register(r'titles', TitleViewSet)
 router_api_01.register('auth/signup', UserCreate, basename='signup')
 router_api_01.register('auth/token', TokenCreate, basename='token_obtain')
 router_api_01.register('users', UserCreateList, basename='users')
+router_api_01.register('users/me/', UserMeRetrieveUpdate, basename='userme')
 router_api_01.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,

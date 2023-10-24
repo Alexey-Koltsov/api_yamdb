@@ -16,6 +16,7 @@ from api.serializers import (GenreSerializer,
                              TokenSerializer,
                              UserSerializer,
                              UserCreateListByAdminSerializer,
+                             UserMeGetUpdateSerializer,
                              ReviewSerializer,
                              CommentSerializer,)
 
@@ -98,16 +99,14 @@ class TokenCreate(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(User, username=request.data['username'])
-        if user['confirmation_code'] != request.data['confirmation_code']:
+        if user.confirmation_code != request.data['confirmation_code']:
             return Response({'detail': 'Некорректный confirmation_code.'},
                             status=status.HTTP_400_BAD_REQUEST
                             )
         refresh = RefreshToken.for_user(user)
         data = {'token': str(refresh.access_token)}
-        headers = self.get_success_headers(serializer.data)
         return Response(data,
                         status=status.HTTP_200_OK,
-                        headers=headers
                         )
 
 
@@ -120,6 +119,21 @@ class UserCreateList(mixins.CreateModelMixin,
     permission_classes = [IsAdmin,]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+
+
+class UserMeRetrieveUpdate(mixins.RetrieveModelMixin,
+                           mixins.UpdateModelMixin,
+                           viewsets.GenericViewSet):
+    """Получение профайла и его изменение пользователем."""
+
+    queryset = User.objects.all()
+    serializer_class = UserMeGetUpdateSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        print(000000000000000000000000)
+        instance = get_object_or_404(User, username=request.user.username)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
