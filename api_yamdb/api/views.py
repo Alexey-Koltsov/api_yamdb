@@ -204,9 +204,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     }
     
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorModeratorAdminOrReadOnly]
+    http_method_names = [
+        'get', 'post', 'patch', 'delete'
+    ]
         
     def get_queryset(self):
         title = get_object_or_404(
@@ -224,6 +226,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorModeratorAdminOrReadOnly]
+    http_method_names = [
+        'get', 'post', 'patch', 'delete'
+    ]
 
     def get_queryset(self):
         review_id = get_object_or_404(Review, id=self.kwargs.get('review_id'))

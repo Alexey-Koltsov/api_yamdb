@@ -157,7 +157,8 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField()
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
+        default = 0,
         validators=(
             MinValueValidator(1),
             MaxValueValidator(10)
