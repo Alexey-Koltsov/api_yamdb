@@ -1,5 +1,6 @@
 import re
 
+from django.db.models import Avg
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -201,12 +202,17 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
-   
+    rating = serializers.SerializerMethodField()
     
     class Meta:
         model = Title
         fields = '__all__'
-
+    
+    def get_rating(self, obj):
+        if obj.reviews.count() == 0:
+            return None
+        rev = Review.objects.filter(title=obj).aggregate(rating=Avg('score'))
+        return rev['rating']
 
 
 class CommentSerializer(serializers.ModelSerializer):
