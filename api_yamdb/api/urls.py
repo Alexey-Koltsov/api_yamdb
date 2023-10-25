@@ -3,7 +3,7 @@ from rest_framework import routers
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
 )
-from api.views import UserCreate, UserCreateList, GenreViewSet, CategoryViewSet, TitleViewSet, ReviewViewSet, CommentViewSet, TokenCreate, UserMeRetrieveUpdate
+from api.views import GenreViewSet, CategoryViewSet, TitleViewSet, ReviewViewSet, CommentViewSet, TokenCreate, UserCreate, UserCreateListViewSet, UserMeRetrieveUpdate, UserRetrieveUpdateDestroy
 
 app_name = 'api'
 
@@ -13,8 +13,9 @@ router_api_01.register('categories', CategoryViewSet,basename='categories')
 router_api_01.register('titles', TitleViewSet, basename='titles')
 router_api_01.register('auth/signup', UserCreate, basename='signup')
 router_api_01.register('auth/token', TokenCreate, basename='token_obtain')
-router_api_01.register('users', UserCreateList, basename='users')
-router_api_01.register('users/me/', UserMeRetrieveUpdate, basename='userme')
+router_api_01.register('users', UserCreateListViewSet, basename='users')
+#router_api_01.register('users/me', UserMeRetrieveUpdateViewSet,
+#                       basename='usersme')
 router_api_01.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
@@ -26,6 +27,7 @@ router_api_01.register(
 
 urlpatterns = [
     path('v1/', include(router_api_01.urls)),
-    path('v1/auth/token/', TokenObtainPairView.as_view(),
-         name='token_obtain'),
+    #path('v1/users/', UserCreateList.as_view()),
+    path('v1/users/me/', UserMeRetrieveUpdate.as_view()),
+    path('v1/users/<slug:username>/', UserRetrieveUpdateDestroy.as_view()),
 ]

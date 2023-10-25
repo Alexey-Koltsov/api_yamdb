@@ -91,6 +91,50 @@ class UserCreateListByAdminSerializer(serializers.ModelSerializer):
         return value
 
 
+class UserGetUpdateDeleteByAdminSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для получения, изменения и удаления
+    пользователей по имени пользователя Админом.
+    """
+
+    username = serializers.SlugField(
+        max_length=150,
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
+    )
+    email = serializers.EmailField(
+        max_length=254,
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
+    )
+    first_name = serializers.SlugField(
+        max_length=150,
+    )
+    last_name = serializers.SlugField(
+        max_length=150,
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Имя пользователя "me" запрещено!'
+            )
+        if not re.match(r'^[\w.@+-]+\Z', value):
+            raise serializers.ValidationError(
+                'Имя пользователя должно соответствовать паттерну!'
+            )
+        return value
+
+
 class UserMeGetUpdateSerializer(serializers.ModelSerializer):
     """
     Сериализатор для получения, изменения
@@ -157,9 +201,12 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
+   
+    
     class Meta:
         model = Title
         fields = '__all__'
+
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -175,7 +222,6 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
-        read_only_fields = ('post', 'author')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -187,7 +233,24 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True
     )
-
+    
+    def validate_score(self, value):
+        if 0 > value > 10:
+            raise serializers.ValidationError('Оценка не может быть больше 10')
+        return value
+    
+    def validate(self, data):
+        request = self.context['request']
+        author = request.user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if (
+            request.method == 'POST'
+            and Review.objects.filter(title=title, author=author).exists()
+        ):
+            raise ValidationError('Отзыв уже есть!')
+        return data
+    
     class Meta:
         fields = '__all__'
         model = Review
