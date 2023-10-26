@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from rest_framework import filters, permissions, mixins, viewsets, status, generics, pagination
@@ -9,9 +10,11 @@ from rest_framework import filters, mixins
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from api.permissions import IsAdmin, IsAuthorModeratorAdminOrReadOnly
+from api.filters import TitleFilter
 from api.serializers import (GenreSerializer,
                              CategorySerializer,
                              TitleSerializer,
+                             TitleReadSerializer,
                              UserSerializer,
                              UserCreateListByAdminSerializer,
                              UserMeGetUpdateSerializer,
@@ -167,41 +170,62 @@ class UserMeRetrieveUpdate(generics.RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 class GenreViewSet(viewsets.ModelViewSet):
+    """Класс для управления Genre (жанры)."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdmin]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter
-    ]
+    filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.is_admin:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    """Класс для управления Category (категории)."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdmin]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter
-    ]
+    filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.is_admin:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Класс для управления Title (произведение)."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdmin]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter
-    ]
-    filterset_fields = {
-        'category__slug': ['exact'],
-        'genre__slug': ['exact'],
-        'name': ['icontains'],
-        'year': ['exact']
-    }
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filterset_class = TitleFilter
+    search_fields = ['name', 'description']
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH', 'DELETE'):
+            return TitleSerializer
+        return TitleReadSerializer
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
     
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer

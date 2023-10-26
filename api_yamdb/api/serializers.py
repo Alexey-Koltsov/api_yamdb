@@ -181,18 +181,33 @@ class UserMeGetUpdateSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели Genre (жанр).
+    """
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = (
+            'name',
+            'slug'
+        )
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели Category (категория).
+    """
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = (
+            'name',
+            'slug'
+        )
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели Title.
+    """
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug'
@@ -201,6 +216,28 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         slug_field='slug',
         many=True
+    )
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre'
+        )
+
+
+class TitleReadSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для чтения информации о Title (произведение).
+    """
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(
+        many=True,
+        read_only=True
     )
     rating = serializers.SerializerMethodField()
     
