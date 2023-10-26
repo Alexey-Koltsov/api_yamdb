@@ -3,7 +3,7 @@ from reviews.models import Title
 
 
 class TitleFilter(django_filters.FilterSet):
-    """Фильтр для модели Title (произведение)"""
+    """Фильтр для модели Title (произведение)."""
     name = django_filters.CharFilter(
         field_name='name',
         lookup_expr='icontains'
@@ -16,9 +16,7 @@ class TitleFilter(django_filters.FilterSet):
         field_name='category__slug',
         lookup_expr='icontains'
     )
-    year = django_filters.NumberFilter(
-        field_name='year'
-    )
+    year = django_filters.NumberFilter(field_name='year')
 
     class Meta:
         model = Title

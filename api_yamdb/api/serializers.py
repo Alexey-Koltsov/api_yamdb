@@ -188,20 +188,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username'
     )
 
-    def check_review_unique(self, data):
-        if self.context.get('request').method != 'PATCH':
-            title_id = self.context['view'].kwargs.get('title_id')
-            title = get_object_or_404(
-                Title,
-                id=title_id
-            )
-            author = self.context.get('request').user
-            if title.reviews.filter(author=author).exists():
-                raise serializers.ValidationError(
-                    'Можно оставить только один отзыв на произведение.'
-                )
-        return data
-
     class Meta:
         model = Review
         fields = (
