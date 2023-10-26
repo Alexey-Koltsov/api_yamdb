@@ -3,14 +3,16 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
 from reviews.models import (
-    Title, Genre, Category, GenreTitle, CustomUser, Comment, Review)
+    Title, Genre, Category, User, Comment, Review
+)
+from reviews.genre_title import GenreTitle
 
 CSV_BASE = {
     Category: 'category.csv',
     Genre: 'genre.csv',
     Title: 'titles.csv',
     GenreTitle: 'genre_title.csv',
-    CustomUser: 'users.csv',
+    User: 'users.csv',
     Review: 'review.csv',
     Comment: 'comments.csv'
 }
@@ -21,6 +23,7 @@ CSV_FIELD_MAPPING = {
     Comment: ['author', 'author_id']
 }
 
+
 class Command(BaseCommand):
 
     def import_data(self, model, csv_file):
@@ -28,14 +31,15 @@ class Command(BaseCommand):
         with open(input_file_path, 'r', encoding='utf8') as input_file:
             for row in csv.DictReader(input_file, delimiter=','):
                 if model in CSV_FIELD_MAPPING:
-                    row.update(
-                        {CSV_FIELD_MAPPING[model][1]: row.pop(
+                    row.update({
+                        CSV_FIELD_MAPPING[model][1]: row.pop(
                             CSV_FIELD_MAPPING[model][0]
-                            )
-                        }
-                    )
+                        )
+                    })
                 try:
-                    existing_record = model.objects.filter(id=row['id']).first()
+                    existing_record = model.objects.filter(
+                        id=row['id']
+                    ).first()
                     if existing_record:
                         for key, value in row.items():
                             setattr(existing_record, key, value)

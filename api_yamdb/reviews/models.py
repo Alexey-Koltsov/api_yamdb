@@ -1,14 +1,19 @@
-from enum import Enum
-
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator
+)
 from django.db import models
+from django.db.models import Avg
 from django.utils import timezone
 from api.constants import SYMBOLS_QUANTITY
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+
 
 class User(AbstractUser):
-    
+    """Модель User (пользователь)"""
+
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
@@ -24,11 +29,10 @@ class User(AbstractUser):
         verbose_name='Имя',
         validators=[RegexValidator(
             r'^[\w-]+$', 'Недопустимый символ.'
-            ),
-        ],
+        )],
     )
     email = models.EmailField(
-        max_length=254, 
+        max_length=254,
         unique=True,
         verbose_name='Адрес электронной почты'
     )
@@ -52,13 +56,13 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default=USER
     )
-    
+
     REQUIRED_FIELDS = ['email']
 
     class Meta:
         constraints = [
             models.CheckConstraint(
-                name='username_can_not_be_me',
+                name='cant_use_me_username',
                 check=~models.Q(username='me'),
             ),
         ]
@@ -73,7 +77,7 @@ class User(AbstractUser):
 
 
 class Genre(models.Model):
-    """Модель жанра."""
+    """Модель Genre (жанр)"""
 
     name = models.CharField(
         max_length=256,
@@ -82,7 +86,7 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        verbose_name='Slug жанра'
+        verbose_name='Slug'
     )
 
     class Meta:
@@ -94,7 +98,7 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    """Модель категорий."""
+    """Модель Category (категория)"""
 
     name = models.CharField(
         max_length=256,
@@ -104,7 +108,7 @@ class Category(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        verbose_name='Slug категории'
+        verbose_name='Slug'
     )
 
     class Meta:
@@ -116,8 +120,7 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    """Модель произведений."""
-
+    """Модель Title(произведение)"""
     name = models.CharField(
         max_length=256,
         blank=False,
@@ -127,10 +130,6 @@ class Title(models.Model):
         blank=True,
         null=True,
         verbose_name='Год выпуска'
-    )
-    rating = models.IntegerField(
-        null=True,
-        verbose_name='Рейтинг на основе отзывов'
     )
     description = models.TextField(
         blank=True,
@@ -152,13 +151,20 @@ class Title(models.Model):
         verbose_name='Категория произведения'
     )
 
+    @property
+    def rating(self):
+        avg_rating = self.reviews.aggregate(Avg('score'))['score__avg']
+        if avg_rating is not None:
+            return round(avg_rating, 2)
+        return None
+
     def check_year_value(self):
         year = self.year
         if year is not None and year > timezone.now().year:
             raise ValidationError(
                 {'year': 'Год не может быть больше текущего.'}
             )
-        
+
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
@@ -170,10 +176,11 @@ class Title(models.Model):
         ]
 
     def __str__(self):
-        return self.name[:SYMBOLS_QUANTITY]
+        return self.name
 
 
 class Review(models.Model):
+    """Модель Review (отзыв)"""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -182,7 +189,7 @@ class Review(models.Model):
     )
     title = models.ForeignKey(
         Title,
-        on_delete=models.CASCADE, 
+        on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведение'
     )
@@ -204,18 +211,15 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-        constraints = [
-            models.UniqueConstraint(
-                fields=('title', 'author', ),
-                name='unique_review'
-            )]
-        ordering = ('pub_date',)
+        unique_together = ['author', 'title']
+        ordering = ('title',)
 
     def __str__(self):
         return self.text
 
 
 class Comment(models.Model):
+    """Модель Comment (комментарий)"""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
