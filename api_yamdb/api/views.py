@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets
+from rest_framework import filters, permissions, viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -30,7 +30,6 @@ from api.serializers import (
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from api.filters import TitleFilter
 from reviews.models import Genre, Category, Title, Review, User
-from rest_framework import status
 
 
 class UserViewSet(viewsets.ModelViewSet):

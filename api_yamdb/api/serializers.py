@@ -1,6 +1,5 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
-from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -110,7 +109,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для модели Title.
+    Сериализатор для модели Title (произведение).
     """
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
