@@ -1,36 +1,26 @@
 from http import HTTPStatus
-from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
+
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.exceptions import ValidationError
+from reviews.models import Category, Genre, Review, Title, User
 
-from api.permissions import (
-    IsAdmin,
-    IsAdminOrReadOnly,
-    IsAuthorModeratorAdminOrReadOnly
-)
-from api.serializers import (
-    GenreSerializer,
-    CategorySerializer,
-    TitleSerializer,
-    TokenSerializer,
-    UserSerializer,
-    ReviewSerializer,
-    CommentSerializer,
-    UserEditSerializer,
-    UserRegistrationSerializer,
-    TitleReadSerializer,
-)
-from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from api.filters import TitleFilter
-from reviews.models import Genre, Category, Title, Review, User
-from rest_framework import status
+from api.permissions import (IsAdmin, IsAdminOrReadOnly,
+                             IsAuthorModeratorAdminOrReadOnly)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             TitleReadSerializer, TitleSerializer,
+                             TokenSerializer, UserEditSerializer,
+                             UserRegistrationSerializer, UserSerializer)
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -82,8 +72,21 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
+    def get_object(self):
+        return get_object_or_404(Genre, slug=self.kwargs['pk'])
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response({'datail': 'method GET not allowed'},
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED
+                        )
+
+    def update(self, request, *args, **kwargs):
+        return Response({'datail': 'method GET not allowed'},
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED
+                        )
+
     def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin:
+        if request.user.is_admin or request.user.is_superuser:
             instance = self.get_object()
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -98,8 +101,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
+    def get_object(self):
+        return get_object_or_404(Category, slug=self.kwargs['pk'])
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response({'datail': 'method GET not allowed'},
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED
+                        )
+
+    def update(self, request, *args, **kwargs):
+        return Response({'datail': 'method GET not allowed'},
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED
+                        )
+
     def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin:
+        if request.user.is_admin or request.user.is_superuser:
             instance = self.get_object()
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -209,6 +225,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 def send_confirmation_code(user: User):
+    """Отправка кода подтверждения."""
+
     confirmation_code = default_token_generator.make_token(user)
     message = f'Ваш код подтверждения: {confirmation_code}'
 
@@ -224,6 +242,8 @@ def send_confirmation_code(user: User):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def signup(request):
+    """Регистрация нового пользователя."""
+
     serializer = UserRegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
@@ -239,6 +259,7 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def get_token(request):
+    """Получение токена."""
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(

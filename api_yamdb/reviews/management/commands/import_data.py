@@ -1,11 +1,10 @@
 import csv
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
-from reviews.models import (
-    Title, Genre, Category, User, Comment, Review
-)
 from reviews.genre_title import GenreTitle
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 CSV_BASE = {
     Category: 'category.csv',
