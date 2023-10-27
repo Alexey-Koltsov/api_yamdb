@@ -1,6 +1,6 @@
-from pathlib import Path
-
+import os
 from datetime import timedelta
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -109,7 +109,7 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 # User model
 
-AUTH_USER_MODEL = 'reviews.CustomUser'
+AUTH_USER_MODEL = 'reviews.User'
 
 # JWT-authentication
 
@@ -121,6 +121,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.'
+                                'PageNumberPagination',
+    "PAGE_SIZE": 10,
 }
 
 
@@ -129,11 +132,12 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'UPDATE_LAST_LOGIN': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'TOKEN_OBTAIN_SERIALIZER': 'api.serializers.CustomTokenObtainPairSerializer',
 }
 
 # Отправка писем
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+
+DEFAULT_FROM_EMAIL = 'api@yamdb.ru'
