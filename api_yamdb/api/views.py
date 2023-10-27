@@ -29,6 +29,7 @@ from api.serializers import (
 )
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from api.filters import TitleFilter
+from api.mixins import CreateDeleteViewSet
 from reviews.models import Genre, Category, Title, Review, User
 
 
@@ -73,36 +74,24 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateDeleteViewSet):
     """Класс для управления Genre (жанры)."""
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateDeleteViewSet):
     """Класс для управления Category (категории)."""
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
