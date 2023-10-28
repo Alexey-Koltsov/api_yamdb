@@ -155,12 +155,6 @@ class Title(models.Model):
             return round(avg_rating, 2)
         return None
 
-    def check_year_value(self):
-        year = self.year
-        if year is not None and year > timezone.now().year:
-            raise ValidationError(
-                {'year': 'Год не может быть больше текущего.'}
-            )
 
     class Meta:
         verbose_name = 'Произведение'

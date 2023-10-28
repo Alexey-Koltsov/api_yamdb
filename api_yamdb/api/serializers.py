@@ -1,3 +1,4 @@
+from api_yamdb.settings import MAX_EMAIL_LENGTH, MAX_USERNAME_LENGTH
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
 from rest_framework import serializers
@@ -9,6 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели User (пользователь).
     """
+
     class Meta:
         model = User
         fields = (
@@ -25,10 +27,11 @@ class UserRegistrationSerializer(serializers.Serializer):
     """
     Сериализатор для регистрации нового пользователя.
     """
+
     username = serializers.CharField(
         validators=[
             UnicodeUsernameValidator,
-            MaxLengthValidator(150),
+            MaxLengthValidator(MAX_USERNAME_LENGTH),
             RegexValidator(
                 r'^[\w-]+$',
                 'Недопустимый символ.'
@@ -36,7 +39,7 @@ class UserRegistrationSerializer(serializers.Serializer):
         ]
     )
     email = serializers.EmailField(
-        validators=[MaxLengthValidator(254)]
+        validators=[MaxLengthValidator(MAX_EMAIL_LENGTH)]
     )
 
     def validate_username(self, value):
@@ -60,6 +63,7 @@ class UserEditSerializer(serializers.ModelSerializer):
     """
     Сериализатор для редактирования информации пользователя.
     """
+
     class Meta:
         model = User
         fields = (
@@ -77,6 +81,7 @@ class TokenSerializer(serializers.Serializer):
     """
     Сериализатор для создания токенов.
     """
+
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
 
@@ -85,6 +90,7 @@ class GenreSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Genre (жанр).
     """
+
     class Meta:
         model = Genre
         fields = (
@@ -97,6 +103,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Category (категория).
     """
+
     class Meta:
         model = Category
         fields = (
@@ -109,6 +116,7 @@ class TitleSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Title.
     """
+
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug'
@@ -118,6 +126,19 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
+
+    def get_titles_data(self):
+        queryset = Title.objects.all()
+        serialized_data = self.__class__(queryset, many=True).data
+        return serialized_data
+
+    def check_year_value(self):
+        year = self.year
+        if year is not None and year > timezone.now().year:
+            raise ValidationError(
+                {'year': 'Год не может быть больше текущего.'}
+            )
+        
 
     class Meta:
         model = Title
@@ -135,6 +156,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
     """
     Сериализатор для чтения информации о Title (произведение).
     """
+
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(
         many=True,
@@ -160,6 +182,7 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Comment (комментарий).
     """
+    
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -180,6 +203,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Review (отзыв).
     """
+
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username'
