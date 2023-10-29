@@ -98,20 +98,10 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitleSerializer
         return TitleReadSerializer
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, kwargs):
         if request.method == 'PUT':
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        avg_rating = instance.reviews.aggregate(Avg('score'))['score__avg']
-        if avg_rating is not None:
-            serializer.data['rating'] = round(avg_rating, 2)
-        else:
-            serializer.data['rating'] = None
-        return Response(serializer.data)
+        return super().update(request, *args, kwargs)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

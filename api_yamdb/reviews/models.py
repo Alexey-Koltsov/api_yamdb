@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from api.constants import SYMBOLS_QUANTITY
 from api_yamdb.settings import MAX_LEN_EMAIL, MAX_LEN_ROLE, MAX_LEN_USERNAME
+from reviews.basemodel import BaseModel
 
 
 class User(AbstractUser):
@@ -72,44 +73,25 @@ class User(AbstractUser):
         return self.role == self.MODERATOR
 
 
-class Genre(models.Model):
+class Genre(BaseModel):
     """Модель Genre (жанр)"""
-
-    name = models.CharField(
-        max_length=256,
-        verbose_name='Название жанра'
-    )
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name='Slug'
-    )
 
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ('name',)
 
     def __str__(self):
         return f'Жанр: {self.name[:SYMBOLS_QUANTITY]}'
 
 
-class Category(models.Model):
+class Category(BaseModel):
     """Модель Category (категория)"""
-
-    name = models.CharField(
-        max_length=256,
-        unique=True,
-        verbose_name='Название'
-    )
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name='Slug'
-    )
 
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+        ordering = ('name',)
 
     def __str__(self):
         return f'Категория: {self.name[:SYMBOLS_QUANTITY]}'
@@ -122,7 +104,7 @@ class Title(models.Model):
         blank=False,
         verbose_name='Название произведения'
     )
-    year = models.PositiveIntegerField(
+    year = models.PositiveSmallIntegerField(
         blank=True,
         null=True,
         verbose_name='Год выпуска'
@@ -134,7 +116,6 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre,
-        blank=False,
         related_name='titles',
         verbose_name='Жанр'
     )
@@ -142,7 +123,6 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         null=True,
-        blank=False,
         related_name='titles',
         verbose_name='Категория произведения'
     )
@@ -164,6 +144,7 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ('name',)
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'year'],
