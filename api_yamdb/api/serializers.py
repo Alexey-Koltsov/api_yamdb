@@ -1,14 +1,17 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
+from django.utils import timezone
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from api_yamdb.settings import MAX_LEN_EMAIL, MAX_LEN_USERNAME
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели User (пользователь).
     """
+
     class Meta:
         model = User
         fields = (
@@ -25,10 +28,11 @@ class UserRegistrationSerializer(serializers.Serializer):
     """
     Сериализатор для регистрации нового пользователя.
     """
+
     username = serializers.CharField(
         validators=[
             UnicodeUsernameValidator,
-            MaxLengthValidator(150),
+            MaxLengthValidator(MAX_LEN_USERNAME),
             RegexValidator(
                 r'^[\w-]+$',
                 'Недопустимый символ.'
@@ -36,7 +40,7 @@ class UserRegistrationSerializer(serializers.Serializer):
         ]
     )
     email = serializers.EmailField(
-        validators=[MaxLengthValidator(254)]
+        validators=[MaxLengthValidator(MAX_LEN_EMAIL)]
     )
 
     def validate_username(self, value):
@@ -60,6 +64,7 @@ class UserEditSerializer(serializers.ModelSerializer):
     """
     Сериализатор для редактирования информации пользователя.
     """
+
     class Meta:
         model = User
         fields = (
@@ -77,6 +82,7 @@ class TokenSerializer(serializers.Serializer):
     """
     Сериализатор для создания токенов.
     """
+
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
 
@@ -85,6 +91,7 @@ class GenreSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Genre (жанр).
     """
+
     class Meta:
         model = Genre
         fields = (
@@ -97,6 +104,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Category (категория).
     """
+
     class Meta:
         model = Category
         fields = (
@@ -109,6 +117,7 @@ class TitleSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Title.
     """
+
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug'
@@ -118,6 +127,18 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
+
+    def get_titles_data(self):
+        queryset = Title.objects.all()
+        serialized_data = self.__class__(queryset, many=True).data
+        return serialized_data
+
+    def check_year_value(self):
+        year = self.year
+        if year is not None and year > timezone.now().year:
+            raise serializers.ValidationError(
+                {'year': 'Год не может быть больше текущего.'}
+            )
 
     class Meta:
         model = Title
@@ -135,12 +156,13 @@ class TitleReadSerializer(serializers.ModelSerializer):
     """
     Сериализатор для чтения информации о Title (произведение).
     """
+
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(
         many=True,
         read_only=True
     )
-    rating = serializers.FloatField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -153,13 +175,13 @@ class TitleReadSerializer(serializers.ModelSerializer):
             'genre',
             'rating'
         )
-        read_only_fields = ('id',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Comment (комментарий).
     """
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -173,13 +195,13 @@ class CommentSerializer(serializers.ModelSerializer):
             'text',
             'pub_date'
         )
-        read_only_fields = ('post', 'author')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Review (отзыв).
     """
+
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username'

@@ -22,11 +22,16 @@ router_api_01.register(
 router_api_01.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
-    basename='comment'
+    basename='comments'
 )
 
-urlpatterns = [
+auth_urlpatterns = [
     path('v1/auth/signup/', signup, name='signup'),
     path('v1/auth/token/', get_token, name='token'),
+]
+
+urlpatterns = [
     path('v1/', include(router_api_01.urls)),
 ]
+
+urlpatterns += auth_urlpatterns
