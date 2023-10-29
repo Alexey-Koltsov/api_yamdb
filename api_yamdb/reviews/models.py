@@ -6,6 +6,7 @@ from django.core.validators import (MaxValueValidator, MinValueValidator,
 from django.db import models
 from django.db.models import Avg
 from django.utils import timezone
+from reviews.validators import creation_year_validator
 
 
 class User(AbstractUser):
@@ -16,9 +17,9 @@ class User(AbstractUser):
     USER = 'user'
 
     ROLE_CHOICES = [
-        (ADMIN, 'Administrator'),
-        (MODERATOR, 'Moderator'),
-        (USER, 'User'),
+        (ADMIN, 'Администратор'),
+        (MODERATOR, 'Модератор'),
+        (USER, 'Пользователь'),
     ]
     username = models.CharField(
         max_length=150,
@@ -33,23 +34,13 @@ class User(AbstractUser):
         unique=True,
         verbose_name='Адрес электронной почты'
     )
-    first_name = models.CharField(
-        max_length=150,
-        blank=True,
-        verbose_name='Имя'
-    )
-    last_name = models.CharField(
-        max_length=150,
-        blank=True,
-        verbose_name='Фамилия'
-    )
     bio = models.TextField(
         blank=True,
         null=True,
         verbose_name='О себе'
     )
     role = models.CharField(
-        max_length=150,
+        max_length=12,
         choices=ROLE_CHOICES,
         default=USER
     )
@@ -120,10 +111,10 @@ class Title(models.Model):
     """Модель Title(произведение)"""
     name = models.CharField(
         max_length=256,
-        blank=False,
         verbose_name='Название произведения'
     )
-    year = models.PositiveIntegerField(
+    year = models.PositiveSmallIntegerField(
+        validators=[creation_year_validator],
         blank=True,
         null=True,
         verbose_name='Год выпуска'
@@ -147,14 +138,6 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Категория произведения'
     )
-
-    @property
-    def rating(self):
-        avg_rating = self.reviews.aggregate(Avg('score'))['score__avg']
-        if avg_rating is not None:
-            return round(avg_rating, 2)
-        return None
-
 
     class Meta:
         verbose_name = 'Произведение'

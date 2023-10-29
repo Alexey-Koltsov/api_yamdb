@@ -1,5 +1,5 @@
 from django.db import models
-from reviews.models import Genre, Title
+from reviews.models import Title, Genre
 
 
 class GenreTitle(models.Model):
