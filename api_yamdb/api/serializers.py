@@ -27,6 +27,7 @@ class UserRegistrationSerializer(serializers.Serializer):
     """
     Сериализатор для регистрации нового пользователя.
     """
+
     username = serializers.CharField(
         validators=[
             UnicodeUsernameValidator,
@@ -62,6 +63,7 @@ class UserEditSerializer(serializers.ModelSerializer):
     """
     Сериализатор для редактирования информации пользователя.
     """
+
     class Meta:
         model = User
         fields = (
@@ -79,6 +81,7 @@ class TokenSerializer(serializers.Serializer):
     """
     Сериализатор для создания токенов.
     """
+
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
 
@@ -87,6 +90,7 @@ class GenreSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Genre (жанр).
     """
+
     class Meta:
         model = Genre
         fields = (
@@ -99,6 +103,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Category (категория).
     """
+
     class Meta:
         model = Category
         fields = (
@@ -111,6 +116,7 @@ class TitleSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Title.
     """
+
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug'
@@ -137,6 +143,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
     """
     Сериализатор для чтения информации о Title (произведение).
     """
+
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(
         many=True,
@@ -162,6 +169,7 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Comment (комментарий).
     """
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -182,6 +190,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Review (отзыв).
     """
+
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username'

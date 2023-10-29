@@ -4,8 +4,8 @@ from reviews.models import Title
 
 
 class TitleFilter(django_filters.FilterSet):
-
     """Фильтр для модели Title (произведение)."""
+
     name = django_filters.CharFilter(
         field_name='name',
         lookup_expr='icontains'

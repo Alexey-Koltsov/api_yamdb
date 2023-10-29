@@ -63,6 +63,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class GenreViewSet(CreateDeleteViewSet):
     """Класс для управления Genre (жанры)."""
+
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -73,6 +74,7 @@ class GenreViewSet(CreateDeleteViewSet):
 
 class CategoryViewSet(CreateDeleteViewSet):
     """Класс для управления Category (категории)."""
+
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -83,6 +85,7 @@ class CategoryViewSet(CreateDeleteViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
+
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -113,6 +116,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Класс для управления Review (отзыв)."""
+
     serializer_class = ReviewSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
@@ -146,6 +150,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Класс для управления Comment (комментарий)."""
+
     serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
@@ -197,6 +202,7 @@ def signup(request):
 @permission_classes([permissions.AllowAny])
 def get_token(request):
     """Получение токена."""
+
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(

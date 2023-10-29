@@ -6,6 +6,8 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    """Настройка админзоны для модели пользователей."""
+
     list_display = (
         'username',
         'email',
@@ -21,6 +23,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Category, Genre)
 class CategoryAdmin(admin.ModelAdmin):
+    """Настройка админзоны для моделей категорий и жанров."""
+
     list_display = (
         'name',
         'slug'
@@ -31,6 +35,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
+    """Настройка админзоны для модели произведений."""
+
     list_display = (
         'name',
         'year',
@@ -51,6 +57,8 @@ class TitleAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
+    """Настройка админзоны для модели отзывов."""
+
     list_display = (
         'author',
         'title',
@@ -64,6 +72,8 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
+    """Настройка админзоны для модели комментариев."""
+
     list_display = (
         'author',
         'review',
