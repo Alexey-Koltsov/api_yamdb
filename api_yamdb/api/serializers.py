@@ -3,12 +3,14 @@ from django.core.validators import MaxLengthValidator, RegexValidator
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from api_yamdb.settings import MAX_LEN_EMAIL, MAX_LEN_USERNAME
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели User (пользователь).
     """
+
     class Meta:
         model = User
         fields = (
@@ -28,7 +30,7 @@ class UserRegistrationSerializer(serializers.Serializer):
     username = serializers.CharField(
         validators=[
             UnicodeUsernameValidator,
-            MaxLengthValidator(150),
+            MaxLengthValidator(MAX_LEN_USERNAME),
             RegexValidator(
                 r'^[\w-]+$',
                 'Недопустимый символ.'
@@ -36,7 +38,7 @@ class UserRegistrationSerializer(serializers.Serializer):
         ]
     )
     email = serializers.EmailField(
-        validators=[MaxLengthValidator(254)]
+        validators=[MaxLengthValidator(MAX_LEN_EMAIL)]
     )
 
     def validate_username(self, value):

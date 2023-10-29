@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,9 +9,9 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, Genre, Review, Title, User
 
 from api.filters import TitleFilter
+from api.mixins import CreateDeleteViewSet
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsAuthorModeratorAdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
@@ -20,12 +19,14 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              TitleReadSerializer, TitleSerializer,
                              TokenSerializer, UserEditSerializer,
                              UserRegistrationSerializer, UserSerializer)
-from api_yamdb.settings import DEFAULT_FROM_EMAIL
+from api.utils import send_confirmation_code
+from reviews.models import Category, Genre, Review, Title, User
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """Класс для управления User (пользователь)."""
-    http_methods = ('get', 'patch', 'delete', 'post', 'put')
+
+    http_methods = ('get', 'patch', 'delete', 'post')
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
@@ -45,18 +46,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == 'PATCH':
-            serializer = self.get_serializer(
-                user,
-                data=request.data,
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
@@ -64,62 +61,24 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateDeleteViewSet):
     """Класс для управления Genre (жанры)."""
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-    def get_object(self):
-        return get_object_or_404(Genre, slug=self.kwargs['pk'])
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def update(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin or request.user.is_superuser:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateDeleteViewSet):
     """Класс для управления Category (категории)."""
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-    def get_object(self):
-        return get_object_or_404(Category, slug=self.kwargs['pk'])
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def update(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin or request.user.is_superuser:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -157,29 +116,27 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
-        IsAuthorModeratorAdminOrReadOnly
+        IsAuthorModeratorAdminOrReadOnly,
+        permissions.IsAuthenticatedOrReadOnly
     ]
 
-    def get_queryset(self):
-        title = get_object_or_404(
+    def get_title_object(self):
+        return get_object_or_404(
             Title,
             id=self.kwargs.get('title_id')
         )
-        return title.reviews.all()
+
+    def get_queryset(self):
+        return self.get_title_object().reviews.all()
 
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(
-            Title,
-            id=title_id
-        )
         author = self.request.user
 
-        if title.reviews.filter(author=author).exists():
+        if self.get_title_object().reviews.filter(author=author).exists():
             raise ValidationError(
                 "Можно оставить только один отзыв на проивезедение."
             )
-        serializer.save(author=author, title=title)
+        serializer.save(author=author, title=self.get_title_object())
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
@@ -195,48 +152,28 @@ class CommentViewSet(viewsets.ModelViewSet):
         IsAuthorModeratorAdminOrReadOnly
     ]
 
-    def get_queryset(self):
+    def get_rewiew_object(self):
         title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(
+        return get_object_or_404(
             Review,
             id=review_id,
             title_id=title_id
         )
-        return review.comments.all()
+
+    def get_queryset(self):
+        return self.get_rewiew_object().comments.all()
 
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
-        review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(
-            Review,
-            id=review_id,
-            title_id=title_id
-        )
         serializer.save(
             author=self.request.user,
-            review=review
+            review=self.get_rewiew_object()
         )
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().update(request, *args, **kwargs)
-
-
-def send_confirmation_code(user: User):
-    """Отправка кода подтверждения."""
-
-    confirmation_code = default_token_generator.make_token(user)
-    message = f'Ваш код подтверждения: {confirmation_code}'
-
-    send_mail(
-        'Ваш код подтверждения',
-        message,
-        DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False,
-    )
 
 
 @api_view(['POST'])
@@ -248,7 +185,7 @@ def signup(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
     email = serializer.validated_data.get('email')
-    user, created = User.objects.get_or_create(
+    user, _ = User.objects.get_or_create(
         username=username,
         email=email
     )
