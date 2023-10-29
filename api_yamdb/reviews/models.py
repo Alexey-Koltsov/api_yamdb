@@ -1,11 +1,11 @@
-from api.constants import SYMBOLS_QUANTITY
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import (MaxValueValidator, MinValueValidator, RegexValidator)
 from django.db import models
 from django.db.models import Avg
 from django.utils import timezone
+
+from reviews.basemodel import BaseModel
 from reviews.validators import creation_year_validator
 
 
@@ -54,6 +54,7 @@ class User(AbstractUser):
                 check=~models.Q(username='me'),
             ),
         ]
+        ordering = ['id']
 
     @property
     def is_admin(self):
@@ -64,47 +65,22 @@ class User(AbstractUser):
         return self.role == self.MODERATOR
 
 
-class Genre(models.Model):
+class Genre(BaseModel):
     """Модель Genre (жанр)"""
-
-    name = models.CharField(
-        max_length=256,
-        verbose_name='Название жанра'
-    )
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name='Slug'
-    )
 
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self):
-        return f'Жанр: {self.name[:SYMBOLS_QUANTITY]}'
+        ordering = ['name']
 
 
-class Category(models.Model):
+class Category(BaseModel):
     """Модель Category (категория)"""
-
-    name = models.CharField(
-        max_length=256,
-        unique=True,
-        verbose_name='Название'
-    )
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name='Slug'
-    )
 
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-
-    def __str__(self):
-        return f'Категория: {self.name[:SYMBOLS_QUANTITY]}'
+        ordering = ['name']
 
 
 class Title(models.Model):
@@ -148,6 +124,7 @@ class Title(models.Model):
                 name='unique_name_year'
             )
         ]
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -186,7 +163,7 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         unique_together = ['author', 'title']
-        ordering = ('title',)
+        ordering = ['title']
 
     def __str__(self):
         return self.text
