@@ -20,7 +20,8 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              TitleReadSerializer, TitleSerializer,
                              TokenSerializer, UserEditSerializer,
                              UserRegistrationSerializer, UserSerializer)
-from api_yamdb.settings import DEFAULT_FROM_EMAIL
+from api.mixins import CreateDeleteViewSet
+from api.utils import send_confirmation_code
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -45,18 +46,21 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == 'PATCH':
-            serializer = self.get_serializer(
-                user,
-                data=request.data,
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return (
+            Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            if request.method != 'PATCH'
+            else self.patch_handler(request, user)
+        )
+
+    def patch_handler(self, request, user):
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
@@ -64,66 +68,31 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateDeleteViewSet):
     """Класс для управления Genre (жанры)."""
-    queryset = Genre.objects.all()
+
+    queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-    def get_object(self):
-        return get_object_or_404(Genre, slug=self.kwargs['pk'])
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def update(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin or request.user.is_superuser:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateDeleteViewSet):
     """Класс для управления Category (категории)."""
-    queryset = Category.objects.all()
+    
+    queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-    def get_object(self):
-        return get_object_or_404(Category, slug=self.kwargs['pk'])
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def update(self, request, *args, **kwargs):
-        return Response({'datail': 'method GET not allowed'},
-                        status=status.HTTP_405_METHOD_NOT_ALLOWED
-                        )
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_admin or request.user.is_superuser:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
+
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -140,16 +109,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if request.method == 'PUT':
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().update(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        avg_rating = instance.reviews.aggregate(Avg('score'))['score__avg']
-        if avg_rating is not None:
-            serializer.data['rating'] = round(avg_rating, 2)
-        else:
-            serializer.data['rating'] = None
-        return Response(serializer.data)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -224,21 +183,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-def send_confirmation_code(user: User):
-    """Отправка кода подтверждения."""
-
-    confirmation_code = default_token_generator.make_token(user)
-    message = f'Ваш код подтверждения: {confirmation_code}'
-
-    send_mail(
-        'Ваш код подтверждения',
-        message,
-        DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False,
-    )
-
-
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def signup(request):
@@ -248,7 +192,7 @@ def signup(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
     email = serializer.validated_data.get('email')
-    user, created = User.objects.get_or_create(
+    user, _ = User.objects.get_or_create(
         username=username,
         email=email
     )
