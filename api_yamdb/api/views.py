@@ -16,7 +16,7 @@ from api.permissions import (IsAdmin, IsAdminOrReadOnly,
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleReadSerializer, TitleSerializer,
-                             TokenSerializer, UserEditSerializer,
+                             TokenSerializer,
                              UserRegistrationSerializer, UserSerializer)
 from api.utils import send_confirmation_code
 from reviews.models import Category, Genre, Review, Title, User
@@ -35,7 +35,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         methods=['get', 'patch'],
-        serializer_class=UserEditSerializer,
+        serializer_class=UserSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=False,
         url_path='me',
@@ -51,6 +51,11 @@ class UserViewSet(viewsets.ModelViewSet):
             partial=True
         )
         serializer.is_valid(raise_exception=True)
+        if 'role' in request.data:
+            return Response(
+                {'detail': 'Изменение роли пользователя запрещено.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 

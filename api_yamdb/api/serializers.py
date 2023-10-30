@@ -23,6 +23,17 @@ class UserSerializer(serializers.ModelSerializer):
             'role'
         )
 
+    read_only_fields = ('role',)
+
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError(
+                'Нельзя использовать имя пользователя "me".'
+                'Выберите другое имя пользователя.'
+            )
+        return value
+
+
 class UserRegistrationSerializer(serializers.Serializer):
     """
     Сериализатор для регистрации нового пользователя.
@@ -57,24 +68,6 @@ class UserRegistrationSerializer(serializers.Serializer):
                 'Пользователь с таким именем или email уже существует'
             )
         return data
-
-
-class UserEditSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для редактирования информации пользователя.
-    """
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        )
-        read_only_fields = ('role',)
 
 
 class TokenSerializer(serializers.Serializer):
