@@ -25,7 +25,7 @@ from reviews.models import Category, Genre, Review, Title, User
 class UserViewSet(viewsets.ModelViewSet):
     """Класс для управления User (пользователь)."""
 
-    http_methods = ('get', 'patch', 'delete', 'post')
+    http_method_names = ('get', 'patch', 'delete', 'post')
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
@@ -53,11 +53,6 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
 
 
 class GenreViewSet(CreateDeleteViewSet):
