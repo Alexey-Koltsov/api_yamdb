@@ -92,6 +92,7 @@ class Category(NameSlugBaseModel):
 
 class Title(models.Model):
     """Модель Title(произведение)"""
+
     name = models.CharField(
         max_length=settings.MAX_LEN_USERNAME,
         blank=False,
@@ -121,12 +122,6 @@ class Title(models.Model):
         verbose_name='Категория произведения'
     )
 
-    def rating(self):
-        avg_rating = self.reviews.aggregate(Avg('score'))['score__avg']
-        if avg_rating is not None:
-            return round(avg_rating, 2)
-        return None
-
     def check_year_value(self):
         year = self.year
         if year is not None and year > timezone.now().year:
@@ -151,6 +146,7 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель Review (отзыв)"""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -190,6 +186,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель Comment (комментарий)"""
+    
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
