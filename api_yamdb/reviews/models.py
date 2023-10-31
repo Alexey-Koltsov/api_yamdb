@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models import Avg
 from django.utils import timezone
 
+from reviews.basemodel import ModelPubDate
 
 class User(AbstractUser):
     """Модель User (пользователь)"""
@@ -170,22 +171,13 @@ class Title(models.Model):
         return self.name
 
 
-class Review(models.Model):
+class Review(ModelPubDate):
     """Модель Review (отзыв)"""
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='reviews',
-        verbose_name='Автор отзыва',
-    )
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведение'
-    )
-    text = models.TextField(
-        verbose_name='Текст отзыва'
     )
     score = models.PositiveSmallIntegerField(
         validators=(
@@ -193,49 +185,26 @@ class Review(models.Model):
             MaxValueValidator(10, message='Максимальное значение: 10')
         ),
     )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата добавления'
-    )
 
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         unique_together = ['author', 'title']
-        ordering = ('title',)
 
     def __str__(self):
         return self.text
 
 
-class Comment(models.Model):
+class Comment(ModelPubDate):
     """Модель Comment (комментарий)"""
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comments',
-        verbose_name='Автор комментария'
-    )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Отзыв на произведение'
     )
-    text = models.TextField(
-        verbose_name='Текст комментарция'
-    )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата добавления'
-    )
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ['pub_date']
-
-    def __str__(self):
-        return self.text

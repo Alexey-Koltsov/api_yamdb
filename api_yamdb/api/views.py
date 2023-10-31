@@ -20,7 +20,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              TitleReadSerializer, TitleSerializer,
                              TokenSerializer, UserEditSerializer,
                              UserRegistrationSerializer, UserSerializer)
-from api.mixins import ListCreateDestroyViewSet
+from api.mixins import ListCreateDestroyViewSet, CustomUpdateMixin
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 
@@ -153,7 +153,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Review (отзыв):
 создание отзыва, изменение отзыва,
 получение одного или списка отзывов,
@@ -181,7 +181,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
     serializer_class = CommentSerializer
     permission_classes = [   
