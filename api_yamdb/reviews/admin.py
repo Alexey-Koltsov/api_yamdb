@@ -1,5 +1,6 @@
-from django.contrib import admin
 from itertools import chain
+
+from django.contrib import admin
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -51,8 +52,8 @@ class TitleAdmin(admin.ModelAdmin):
     filter_horizontal = ('genre',)
 
     def genre_names(self, obj):
-        a = obj.genre.values_list('name')
-        return list(chain.from_iterable(a))
+        genres_list = obj.genre.values_list('name')
+        return list(chain.from_iterable(genres_list))
 
 
 @admin.register(Review)

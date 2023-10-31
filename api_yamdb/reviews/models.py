@@ -7,7 +7,10 @@ from django.db.models import Avg
 from django.utils import timezone
 
 from api.constants import SYMBOLS_QUANTITY
-from api_yamdb.settings import MAX_LEN_EMAIL, MAX_LEN_ROLE, MAX_LEN_USERNAME
+from api_yamdb.settings import (
+    MAX_LEN_EMAIL, MAX_LEN_NAME,
+    MAX_LEN_ROLE, MAX_LEN_USERNAME
+)
 from reviews.basemodel import BaseModel
 
 
@@ -66,7 +69,7 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return self.role == self.ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
@@ -100,7 +103,7 @@ class Category(BaseModel):
 class Title(models.Model):
     """Модель Title(произведение)"""
     name = models.CharField(
-        max_length=256,
+        max_length=MAX_LEN_NAME,
         blank=False,
         verbose_name='Название произведения'
     )
