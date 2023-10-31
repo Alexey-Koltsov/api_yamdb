@@ -10,18 +10,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-MAX_LEN_USERNAME = 150
-
-MAX_LEN_EMAIL = 254
-
-MAX_LEN_ROLE = 9
-
-MAX_LEN_NAME = 256
-
-MAX_LEN_SLUG = 50
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -66,18 +54,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_yamdb.wsgi.application'
 
-
-# Database
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
-# Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -94,9 +76,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-
 LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
@@ -108,17 +87,11 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-# User model
-
 AUTH_USER_MODEL = 'reviews.User'
-
-# JWT-authentication
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -133,7 +106,6 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=14),
     'ROTATE_REFRESH_TOKENS': False,
@@ -141,10 +113,19 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Отправка писем
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 DEFAULT_FROM_EMAIL = 'api@yamdb.ru'
+
+MAX_LEN_USERNAME = 150
+
+MAX_LEN_EMAIL = 254
+
+MAX_LEN_ROLE = 9
+
+MAX_LEN_NAME = 256
+
+MAX_LEN_SLUG = 50

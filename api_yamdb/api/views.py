@@ -106,7 +106,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAuthorModeratorAdminOrReadOnly,
-        permissions.IsAuthenticatedOrReadOnly
     ]
 
     def get_title_object(self):
