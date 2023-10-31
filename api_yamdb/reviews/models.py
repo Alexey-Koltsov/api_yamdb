@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import Avg
 from django.utils import timezone
 
-from reviews.basemodel import ModelPubDate
+from reviews.basemodels import ModelPubDate
 
 class User(AbstractUser):
     """Модель User (пользователь)"""

@@ -175,11 +175,6 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_review())
 
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
-
 
 class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
@@ -207,11 +202,6 @@ class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
             author=self.request.user,
             review=self.get_review()
         )
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
 
 
 def send_confirmation_code(user: User):

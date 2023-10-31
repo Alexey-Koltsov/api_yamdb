@@ -1,6 +1,5 @@
 from django.db import models
 
-from reviews.models import User
 
 class ModelPubDate(models.Model):
     pub_date = models.DateTimeField(
@@ -8,7 +7,7 @@ class ModelPubDate(models.Model):
         db_index=True,
         verbose_name='Дата добавления')
     author = models.ForeignKey(
-        User,
+        'reviews.User',
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_related",
         verbose_name='Автор')
