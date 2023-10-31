@@ -127,7 +127,6 @@ class Title(models.Model):
         verbose_name='Категория произведения'
     )
 
-    @property
     def rating(self):
         avg_rating = self.reviews.aggregate(Avg('score'))['score__avg']
         if avg_rating is not None:

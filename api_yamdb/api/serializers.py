@@ -154,7 +154,10 @@ class TitleReadSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(
+        default=0.0,
+        read_only=True
+    )
 
     class Meta:
         model = Title

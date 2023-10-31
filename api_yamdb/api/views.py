@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
@@ -10,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import CreateDeleteViewSet
+from api.mixins import CreateDeleteViewSet, CustomUpdateMixin
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsAuthorModeratorAdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
@@ -87,10 +88,10 @@ class CategoryViewSet(CreateDeleteViewSet):
     filter_backends = (filters.SearchFilter,)
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
 
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -101,11 +102,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.request.method in ('POST', 'PATCH', 'DELETE'):
             return TitleSerializer
         return TitleReadSerializer
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, kwargs)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
