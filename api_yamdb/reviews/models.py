@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from api.constants import SYMBOLS_QUANTITY
 from reviews.basemodel import NameSlugBaseModel
+from reviews.validators import creation_year_validator
 
 
 class User(AbstractUser):
@@ -97,6 +98,7 @@ class Title(models.Model):
         verbose_name='Название произведения'
     )
     year = models.PositiveSmallIntegerField(
+        validators=[creation_year_validator],
         blank=True,
         null=True,
         verbose_name='Год выпуска'
