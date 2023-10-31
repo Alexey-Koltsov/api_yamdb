@@ -128,18 +128,6 @@ class TitleSerializer(serializers.ModelSerializer):
         many=True
     )
 
-    def get_titles_data(self):
-        queryset = Title.objects.all()
-        serialized_data = self.__class__(queryset, many=True).data
-        return serialized_data
-
-    def check_year_value(self):
-        year = self.year
-        if year is not None and year > timezone.now().year:
-            raise serializers.ValidationError(
-                {'year': 'Год не может быть больше текущего.'}
-            )
-
     class Meta:
         model = Title
         fields = (
@@ -150,6 +138,18 @@ class TitleSerializer(serializers.ModelSerializer):
             'category',
             'genre'
         )
+
+    def validate_year(self, value):
+        print(f'value: {value}')
+        print(f'timezone.now().year: {timezone.now().year}')
+        if value and value > timezone.now().year:
+            raise serializers.ValidationError(
+                {'year': 'Год не может быть больше текущего.'}
+            )
+        return value
+
+    def to_representation(self, instance):
+        return TitleReadSerializer(instance).data
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
