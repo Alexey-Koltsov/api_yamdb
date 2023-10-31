@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.mixins import (
     CreateModelMixin,
     DestroyModelMixin,
@@ -7,6 +7,8 @@ from rest_framework.mixins import (
 )
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from api.permissions import IsAdminOrReadOnly
 
 
 class CreateDeleteViewSet(
@@ -25,3 +27,10 @@ class CustomUpdateMixin(UpdateModelMixin):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED
             )
         return super().update(request, *args, kwargs)
+
+
+class GenreCategoryViewSetMixin:
+    permission_classes = (IsAdminOrReadOnly,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)

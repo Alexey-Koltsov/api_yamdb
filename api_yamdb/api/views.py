@@ -11,7 +11,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import CreateDeleteViewSet, CustomUpdateMixin
+from api.mixins import (CreateDeleteViewSet,
+                        CustomUpdateMixin,
+                        GenreCategoryViewSetMixin)
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsAuthorModeratorAdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
@@ -61,26 +63,18 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GenreViewSet(CreateDeleteViewSet):
+class GenreViewSet(GenreCategoryViewSetMixin, CreateDeleteViewSet):
     """Класс для управления Genre (жанры)."""
 
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
 
 
-class CategoryViewSet(CreateDeleteViewSet):
+class CategoryViewSet(GenreCategoryViewSetMixin, CreateDeleteViewSet):
     """Класс для управления Category (категории)."""
 
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
 
 
 class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
