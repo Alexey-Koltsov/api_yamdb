@@ -3,9 +3,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
 
-from reviews.genre_title import GenreTitle
 from reviews.models import (
-    Title, Genre, Category, User, Comment, Review
+    Title, Genre, Category, User, Comment, Review, GenreTitle
 )
 
 
