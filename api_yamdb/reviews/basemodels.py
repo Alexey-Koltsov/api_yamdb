@@ -40,6 +40,6 @@ class ModelPubDate(models.Model):
     class Meta:
         abstract = True
         ordering = ('title',)
-    
+
     def __str__(self):
         return self.text

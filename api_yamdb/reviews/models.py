@@ -3,12 +3,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
-from django.db.models import Avg
 from django.utils import timezone
 
 from api.constants import SYMBOLS_QUANTITY
 from api_yamdb.settings import (
-    MAX_LEN_EMAIL, MAX_LEN_NAME,
+    MAX_LEN_EMAIL,
     MAX_LEN_ROLE, MAX_LEN_USERNAME
 )
 from reviews.basemodels import ModelPubDate, NameSlugBaseModel

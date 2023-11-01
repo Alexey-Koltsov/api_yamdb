@@ -34,4 +34,3 @@ class GenreCategoryViewSetMixin:
     search_fields = ('name',)
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter,)
-    

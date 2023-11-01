@@ -6,12 +6,12 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import GenreCategoryViewSetMixin, CreateDeleteViewSet, CustomUpdateMixin
+from api.mixins import (GenreCategoryViewSetMixin,
+                        CreateDeleteViewSet, CustomUpdateMixin)
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsAuthorModeratorAdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
@@ -106,7 +106,7 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     def get_review(self):
         title_id = self.kwargs.get('title_id')
         return get_object_or_404(Title, pk=title_id)
-    
+
     def get_queryset(self):
         return self.get_review().reviews.all()
 
@@ -117,11 +117,11 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
 class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
     serializer_class = CommentSerializer
-    permission_classes = [   
+    permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAuthorModeratorAdminOrReadOnly
     ]
-    
+
     def get_review(self):
         title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')

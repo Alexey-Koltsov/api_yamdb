@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
+
 class UserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели User (пользователь).
@@ -172,7 +173,7 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Comment (комментарий).
     """
-    
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
