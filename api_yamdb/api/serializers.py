@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 from django.conf import settings
+=======
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.utils import timezone
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
+<<<<<<< HEAD
+=======
+from api_yamdb.settings import MAX_LEN_EMAIL, MAX_LEN_USERNAME
+
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -22,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
             'role'
         )
 
+<<<<<<< HEAD
     read_only_fields = ('role',)
 
     def validate_username(self, value):
@@ -32,6 +41,8 @@ class UserSerializer(serializers.ModelSerializer):
             )
         return value
 
+=======
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 
 class UserRegistrationSerializer(serializers.Serializer):
     """
@@ -41,7 +52,11 @@ class UserRegistrationSerializer(serializers.Serializer):
     username = serializers.CharField(
         validators=[
             UnicodeUsernameValidator,
+<<<<<<< HEAD
             MaxLengthValidator(settings.MAX_LEN_USERNAME),
+=======
+            MaxLengthValidator(MAX_LEN_USERNAME),
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
             RegexValidator(
                 r'^[\w-]+$',
                 'Недопустимый символ.'
@@ -49,7 +64,11 @@ class UserRegistrationSerializer(serializers.Serializer):
         ]
     )
     email = serializers.EmailField(
+<<<<<<< HEAD
         validators=[MaxLengthValidator(settings.MAX_LEN_EMAIL)]
+=======
+        validators=[MaxLengthValidator(MAX_LEN_EMAIL)]
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
     )
 
     def validate_username(self, value):
@@ -69,6 +88,27 @@ class UserRegistrationSerializer(serializers.Serializer):
         return data
 
 
+<<<<<<< HEAD
+=======
+class UserEditSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для редактирования информации пользователя.
+    """
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role'
+        )
+        read_only_fields = ('role',)
+
+
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 class TokenSerializer(serializers.Serializer):
     """
     Сериализатор для создания токенов.
@@ -119,6 +159,21 @@ class TitleSerializer(serializers.ModelSerializer):
         many=True
     )
 
+<<<<<<< HEAD
+=======
+    def get_titles_data(self):
+        queryset = Title.objects.all()
+        serialized_data = self.__class__(queryset, many=True).data
+        return serialized_data
+
+    def check_year_value(self):
+        year = self.year
+        if year is not None and year > timezone.now().year:
+            raise serializers.ValidationError(
+                {'year': 'Год не может быть больше текущего.'}
+            )
+
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
     class Meta:
         model = Title
         fields = (
@@ -130,6 +185,7 @@ class TitleSerializer(serializers.ModelSerializer):
             'genre'
         )
 
+<<<<<<< HEAD
     def validate_year(self, value):
         print(f'value: {value}')
         print(f'timezone.now().year: {timezone.now().year}')
@@ -142,6 +198,8 @@ class TitleSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return TitleReadSerializer(instance).data
 
+=======
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 
 class TitleReadSerializer(serializers.ModelSerializer):
     """
@@ -172,7 +230,11 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Comment (комментарий).
     """
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -198,6 +260,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username'
     )
 
+<<<<<<< HEAD
     def validate(self, data):
         if Review.objects.filter(
             author=self.context['request'].user,
@@ -207,6 +270,8 @@ class ReviewSerializer(serializers.ModelSerializer):
                 "Можно оставить только один отзыв на проивезедение.")
         return data
 
+=======
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
     class Meta:
         model = Review
         fields = (

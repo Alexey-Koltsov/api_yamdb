@@ -17,4 +17,8 @@ def send_confirmation_code(user: User):
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
         fail_silently=False,
+<<<<<<< HEAD
     )
+=======
+    )
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed

@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 from itertools import chain
 
 from django.contrib import admin
+=======
+from django.contrib import admin
+from itertools import chain
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -52,8 +57,13 @@ class TitleAdmin(admin.ModelAdmin):
     filter_horizontal = ('genre',)
 
     def genre_names(self, obj):
+<<<<<<< HEAD
         genres_list = obj.genre.values_list('name')
         return list(chain.from_iterable(genres_list))
+=======
+        a = obj.genre.values_list('name')
+        return list(chain.from_iterable(a))
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 
 
 @admin.register(Review)
@@ -85,4 +95,8 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ('author',)
 
 
+<<<<<<< HEAD
 admin.site.empty_value_display = '-пусто-'
+=======
+admin.site.empty_value_display = '-пусто-'
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed

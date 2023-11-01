@@ -18,6 +18,10 @@ class TitleFilter(django_filters.FilterSet):
         field_name='category__slug',
         lookup_expr='icontains'
     )
+<<<<<<< HEAD
+=======
+    year = django_filters.NumberFilter(field_name='year')
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 
     class Meta:
         model = Title
@@ -26,4 +30,8 @@ class TitleFilter(django_filters.FilterSet):
             'year',
             'genre',
             'category'
+<<<<<<< HEAD
         ]
+=======
+        ]
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed

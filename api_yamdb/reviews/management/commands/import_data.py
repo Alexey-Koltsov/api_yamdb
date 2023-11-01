@@ -1,5 +1,8 @@
 import csv
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
