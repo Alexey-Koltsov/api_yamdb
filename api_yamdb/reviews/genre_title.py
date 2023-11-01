@@ -1,8 +1,4 @@
 from django.db import models
-<<<<<<< HEAD
-
-=======
->>>>>>> 39fa275f2ec943f5cf022eced3f9acccb5022aed
 from reviews.models import Genre, Title
 
 
