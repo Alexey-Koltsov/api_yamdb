@@ -79,7 +79,7 @@ class User(AbstractUser):
 class Genre(NameSlugBaseModel):
     """Модель Genre (жанр)"""
 
-    class Meta:
+    class Meta(NameSlugBaseModel.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -87,7 +87,7 @@ class Genre(NameSlugBaseModel):
 class Category(NameSlugBaseModel):
     """Модель Category (категория)"""
 
-    class Meta:
+    class Meta(NameSlugBaseModel.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -123,13 +123,6 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Категория произведения'
     )
-
-    def check_year_value(self):
-        year = self.year
-        if year is not None and year > timezone.now().year:
-            raise ValidationError(
-                {'year': 'Год не может быть больше текущего.'}
-            )
 
     class Meta:
         verbose_name = 'Произведение'

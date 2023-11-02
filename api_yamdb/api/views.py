@@ -46,17 +46,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        data = request.data.copy()
+        data.pop('role', None)
         serializer = self.get_serializer(
             user,
-            data=request.data,
+            data=data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        if 'role' in request.data:
-            return Response(
-                {'detail': 'Изменение роли пользователя запрещено.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -78,7 +75,8 @@ class CategoryViewSet(GenreCategoryViewSetMixin, CreateDeleteViewSet):
 class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
 
-    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score')) \
+        .order_by('-reviews')
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -93,10 +91,11 @@ class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Review (отзыв):
-создание отзыва, изменение отзыва,
-получение одного или списка отзывов,
-удаление отзыва.
-"""
+    создание отзыва, изменение отзыва,
+    получение одного или списка отзывов,
+    удаление отзыва.
+    """
+
     serializer_class = ReviewSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
@@ -116,6 +115,7 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
 
 class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
+    
     serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,

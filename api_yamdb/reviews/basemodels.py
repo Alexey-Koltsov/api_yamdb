@@ -20,7 +20,7 @@ class NameSlugBaseModel(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return f'Категория: {self.name[:SYMBOLS_QUANTITY]}'
+        return f'{self.name[:SYMBOLS_QUANTITY]}'
 
 
 class ModelPubDate(models.Model):
@@ -42,4 +42,4 @@ class ModelPubDate(models.Model):
         ordering = ('title',)
 
     def __str__(self):
-        return self.text
+        return self.text[:SYMBOLS_QUANTITY]
