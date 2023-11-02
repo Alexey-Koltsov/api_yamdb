@@ -76,7 +76,7 @@ class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
 
     queryset = Title.objects.all().annotate(rating=Avg('reviews__score')) \
-        .order_by('-reviews')
+        .order_by('name')
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
