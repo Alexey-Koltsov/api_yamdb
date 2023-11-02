@@ -1,13 +1,10 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
 
 from api.constants import SYMBOLS_QUANTITY
-from api_yamdb.settings import (
-    MAX_LEN_EMAIL,
-    MAX_LEN_ROLE, MAX_LEN_USERNAME
-)
 from reviews.basemodels import ModelPubDate, NameSlugBaseModel
 from reviews.validators import creation_year_validator
 
@@ -25,7 +22,7 @@ class User(AbstractUser):
         (USER, 'Пользователь'),
     ]
     username = models.CharField(
-        max_length=MAX_LEN_USERNAME,
+        max_length=settings.MAX_LEN_USERNAME,
         unique=True,
         verbose_name='Имя пользователя',
         validators=[RegexValidator(
@@ -33,7 +30,7 @@ class User(AbstractUser):
         )],
     )
     email = models.EmailField(
-        max_length=MAX_LEN_EMAIL,
+        max_length=settings.MAX_LEN_EMAIL,
         unique=True,
         verbose_name='Адрес электронной почты'
     )
@@ -43,7 +40,7 @@ class User(AbstractUser):
         verbose_name='О себе'
     )
     role = models.CharField(
-        max_length=MAX_LEN_ROLE,
+        max_length=settings.MAX_LEN_ROLE,
         choices=ROLE_CHOICES,
         default=USER,
         verbose_name='Роль',
@@ -94,7 +91,7 @@ class Title(models.Model):
     """Модель Title(произведение)"""
 
     name = models.CharField(
-        max_length=MAX_LEN_USERNAME,
+        max_length=settings.MAX_LEN_USERNAME,
         blank=False,
         verbose_name='Название произведения'
     )

@@ -46,15 +46,13 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        data = request.data.copy()
-        data.pop('role', None)
         serializer = self.get_serializer(
             user,
-            data=data,
+            data=request.data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=self.request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -75,8 +73,9 @@ class CategoryViewSet(GenreCategoryViewSetMixin, CreateDeleteViewSet):
 class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
 
-    queryset = Title.objects.all().annotate(rating=Avg('reviews__score')) \
-        .order_by('name')
+    queryset = Title.objects.all().annotate(
+        rating=Avg('reviews__score')
+    ).order_by('name')
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
