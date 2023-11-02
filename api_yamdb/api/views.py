@@ -115,7 +115,7 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
 
 class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
-    
+
     serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
