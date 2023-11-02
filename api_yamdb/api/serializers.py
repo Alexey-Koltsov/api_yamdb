@@ -206,7 +206,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             ).exists():
                 raise serializers.ValidationError(
                     'Можно оставить только один отзыв на произведение.'
-                    )
+                )
         return data
 
     class Meta:

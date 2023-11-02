@@ -75,7 +75,8 @@ class CategoryViewSet(GenreCategoryViewSetMixin, CreateDeleteViewSet):
 class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
     """Класс для управления Title (произведение)."""
 
-    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score')) \
+        .order_by('-reviews')
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -90,10 +91,10 @@ class TitleViewSet(CustomUpdateMixin, viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Review (отзыв):
-создание отзыва, изменение отзыва,
-получение одного или списка отзывов,
-удаление отзыва.
-"""
+    cоздание отзыва, изменение отзыва,
+    получение одного или списка отзывов,
+    удаление отзыва.
+    """
 
     serializer_class = ReviewSerializer
     permission_classes = [
@@ -114,7 +115,7 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
 
 class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
-    
+
     serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
