@@ -97,6 +97,7 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
 получение одного или списка отзывов,
 удаление отзыва.
 """
+
     serializer_class = ReviewSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
@@ -116,6 +117,7 @@ class ReviewViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
 
 class CommentViewSet(viewsets.ModelViewSet, CustomUpdateMixin):
     """Класс для управления Comment (комментарий)."""
+    
     serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
