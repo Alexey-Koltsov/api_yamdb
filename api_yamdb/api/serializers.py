@@ -132,8 +132,6 @@ class TitleSerializer(serializers.ModelSerializer):
         )
 
     def validate_year(self, value):
-        print(f'value: {value}')
-        print(f'timezone.now().year: {timezone.now().year}')
         if value and value > timezone.now().year:
             raise serializers.ValidationError(
                 {'year': 'Год не может быть больше текущего.'}
@@ -200,12 +198,15 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        if Review.objects.filter(
-            author=self.context['request'].user,
-            title_id=self.context['view'].kwargs.get('title_id')
-        ).exists() and self.context['request'].method == 'POST':
-            raise serializers.ValidationError(
-                "Можно оставить только один отзыв на проивезедение.")
+        request = self.context.get('request')
+        if request.method == 'POST':
+            if Review.objects.filter(
+                author=request.user,
+                title_id=self.context['view'].kwargs.get('title_id')
+            ).exists():
+                raise serializers.ValidationError(
+                    'Можно оставить только один отзыв на произведение.'
+                    )
         return data
 
     class Meta:

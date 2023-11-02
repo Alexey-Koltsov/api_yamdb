@@ -46,17 +46,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        data = request.data.copy()
+        data.pop('role', None)
         serializer = self.get_serializer(
             user,
-            data=request.data,
+            data=data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        if 'role' in request.data:
-            return Response(
-                {'detail': 'Изменение роли пользователя запрещено.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
